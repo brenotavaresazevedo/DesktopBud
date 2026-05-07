@@ -1,7 +1,6 @@
 #include "raylib.h"
 #include <vector>
 #include <string>
-#include <variant>
 void screenCanvasInit(){
 	SetConfigFlags(FLAG_WINDOW_TRANSPARENT | FLAG_WINDOW_MOUSE_PASSTHROUGH | FLAG_WINDOW_RESIZABLE|FLAG_WINDOW_UNDECORATED);
 	InitWindow(500,500,"");
