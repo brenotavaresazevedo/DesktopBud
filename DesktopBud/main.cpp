@@ -1,6 +1,7 @@
 #include "raylib.h"
 #include <vector>
 #include <string>
+#include <iostream>
 void screenCanvasInit(){
 	SetConfigFlags(FLAG_WINDOW_TRANSPARENT | FLAG_WINDOW_MOUSE_PASSTHROUGH | FLAG_WINDOW_RESIZABLE|FLAG_WINDOW_UNDECORATED);
 	InitWindow(500,500,"");
@@ -10,9 +11,10 @@ class AnimatedSprite{
 	private:
 	int animacaoAtual = 0;
 	float spriteCounter = 0;
-	float spriteAtual = 0;
+	int spriteAtual = 0;
 	public:
 	bool paused = false;
+	bool unused = false;
 	struct spriteTable{
 		std::string name;
 		std::vector<Texture2D> anim;
@@ -98,6 +100,7 @@ class AnimatedSprite{
 				}
 			}
 		}
+		unused = true;
 	}
 	void eraseAnimation(std::string nome){
 		for(int i=0;i<sprites.size();i++){
@@ -167,6 +170,100 @@ class Sprite{
 	}
 	void unload(){
 		UnloadTexture(tex);
+	}
+};
+class CollideBox{
+	private:
+	AnimatedSprite* collide = nullptr;
+	bool canUse = false;
+	std::vector<Rectangle> collisors;
+	Rectangle collidedCollisor;
+	Rectangle collideBox;
+	public:
+	bool debugMode = false;
+	float x;
+	float y;
+	float sizeX;
+	float sizeY;
+	bool isOnFloor(){
+		if(collisors.size()>0){
+			if(collideBox.y+collideBox.height>=collidedCollisor.y && collideBox.y+collideBox.height<=collidedCollisor.y+collidedCollisor.height/2){
+				return true;
+			}
+		}
+		return false;
+	}
+	bool isOnWall(std::string direction){
+		if(collisors.size()>0){
+			if(direction=="left"){
+				if(collideBox.x<collidedCollisor.x+collidedCollisor.width){
+					return true;
+				}
+			}
+			else if(direction=="right"){
+				if(collideBox.x + collideBox.width > collidedCollisor.x){
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	bool collided(){
+		if(collisors.size()>0){
+			if(collideBox.x<collidedCollisor.x+collidedCollisor.width && collideBox.x + collideBox.width > collidedCollisor.x && collideBox.y < collidedCollisor.y + collidedCollisor.height && collideBox.y+collideBox.height>collidedCollisor.y){
+				return true;
+			}
+		}
+		return false;
+	}
+	bool isOnCelling(){
+		if(collisors.size()>0){
+			if(collideBox.y<=collidedCollisor.y+collidedCollisor.height && collideBox.y+collideBox.height>collidedCollisor.y+collidedCollisor.height/2){
+				return true;
+			}
+		}
+		return false;
+	}
+	void update(){
+		if(canUse==true){
+			if(collide->unused==true){
+				collide = nullptr;
+				canUse = false;
+			}
+			collideBox.x = collide->x;
+			collideBox.y = collide->y;
+		}
+		else{
+			return;
+		}
+		for(int i=0;i<collisors.size();i++){
+			if(collideBox.x<collisors[i].x+collisors[i].width && collideBox.x + collideBox.width > collisors[i].x && collideBox.y < collisors[i].y + collisors[i].height && collideBox.y+collideBox.height>collisors[i].y){
+				collidedCollisor = collisors[i];
+			}
+		}
+		if(debugMode==true){
+			DrawRectangle(collideBox.x,collideBox.y,collideBox.width,collideBox.height,BLUE);
+			for(int i=0;i<collisors.size();i++){
+				DrawRectangle(collisors[i].x,collisors[i].y,collisors[i].width,collisors[i].height,RED);
+			}
+		}
+		collideBox.width = sizeX;
+		collideBox.height = sizeY;
+	}
+	void makeCollideObject(AnimatedSprite& spr){
+		collide = &spr;
+		canUse = true;
+	}
+	void addCollisor(Rectangle coll){
+		collisors.push_back(coll);
+	}
+	void eraseCollisor(Rectangle rect){
+		for(int i=0;i<collisors.size();i++){
+			if(collisors[i].x==rect.x && collisors[i].y==rect.y && collisors[i].width==rect.width && collisors[i].height==rect.height){
+				collisors.erase(collisors.begin() + i);
+				break;
+			}
+		}
 	}
 };
 
