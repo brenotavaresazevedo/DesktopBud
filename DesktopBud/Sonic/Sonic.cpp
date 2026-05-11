@@ -11,6 +11,7 @@ struct player{
 	float referencePos;
 	std::string direction = "right";
 	float spinDashVelocityForce = 0;
+	CollideBox colBox;
 	player(){
 		screenCanvasInit();
 		sonic.addAnimation("walking>",0.2f);
@@ -91,13 +92,30 @@ struct player{
 };
 player Sonic;
 int main(){
+	Sonic.colBox.addCollisor({100,450,50,50});
+	Sonic.colBox.makeCollideObject(Sonic.sonic);
+	Sonic.colBox.sizeX = 50;
+	Sonic.colBox.sizeY = 75;
 	while(!WindowShouldClose()){
 		BeginDrawing();
 		ClearBackground(BLANK);
-		Sonic.sonic.update();
 		Sonic.referencePos += Sonic.sonic.velocityY * GetFrameTime();
 		float spinDashFps = 0;
-		if(Sonic.sonic.y>(float)GetScreenHeight()-80){
+		Sonic.sonic.update();
+		Sonic.colBox.update();
+		if(Sonic.colBox.isOnWall("left") && Sonic.colBox.collided() && !Sonic.colBox.isOnFloor()){
+			Sonic.sonic.x -= 10;
+			Sonic.sonic.velocityX = -10;
+			std::cout << "teste" << std::endl;
+		}
+		if(Sonic.colBox.isOnWall("right") && Sonic.colBox.collided() && !Sonic.colBox.isOnFloor()){
+			Sonic.sonic.x += 10;
+			Sonic.sonic.velocityX = 10;
+		}
+		if(Sonic.colBox.isOnCelling() && Sonic.colBox.collided()){
+			Sonic.sonic.velocityY = 100;
+		}
+		if(Sonic.sonic.y>(float)GetScreenHeight()-80 || Sonic.colBox.isOnFloor() && Sonic.colBox.collided() && !Sonic.colBox.isOnCelling()){
 			Sonic.sonic.velocityY = 0;
 			if(IsKeyDown(KEY_SPACE) && !IsKeyDown(KEY_DOWN)){
 				Sonic.sonic.velocityY = -800;
@@ -210,7 +228,6 @@ int main(){
 				}
 			}
 		}
-
 		if(IsKeyDown(KEY_RIGHT) && Sonic.isDashing==false && Sonic.spinDash==false && !IsKeyDown(KEY_DOWN) && !IsKeyDown(KEY_UP)){
 			Sonic.sonic.velocityX += 1;
 		}
