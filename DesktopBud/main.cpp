@@ -230,8 +230,10 @@ class CollideBox{
 				collide = nullptr;
 				canUse = false;
 			}
-			collideBox.x = collide->x;
-			collideBox.y = collide->y;
+			else{
+				collideBox.x = collide->x;
+				collideBox.y = collide->y;
+			}
 		}
 		else{
 			return;
